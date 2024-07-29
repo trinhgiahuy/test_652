@@ -49,7 +49,6 @@ def available_tasks(tasks, current_time):
         print(f"{current_time}: {task.info()}")
     print("::::::::::::::::::::")
 
-    # This will update the available task list, with whenever task available, will update and return here
     return [task for task in tasks if current_time >= task.next_available]
 
 def order_by_deadline(tasks):
@@ -63,7 +62,6 @@ def preempted(tasks, current_time, expected_executing_task, first_run):
         ordered_by_priority = order_by_deadline(available)
         print(f"ordered_by_priority: {ordered_by_priority}")
 
-        # HANDLE PRE_EMPT HERE? USUALLY NOT FIRST RUN
         if not first_run:
             print(f"[EVALUATE]: expected_executing_task {expected_executing_task.getName()} with expected_run: {expected_executing_task.getExpectedContinue()}")
             if expected_executing_task.getExpectedContinue() == True:
@@ -115,7 +113,6 @@ def schedule(tasks, total_time, expected_task_first_run):
 
         print(f"task after preempt: {task}")
 
-        # CASE WHEN ALL TASKS COMPLETE WITHIN THEIR PERIOD AND NOT YET AVAILABLE, IDLE TIME
         if task is None:
             next_event_time = get_next_event_time(tasks, timeline.current_time)
             timeline.tasks.append(["  ", timeline.current_time, next_event_time])
@@ -126,7 +123,7 @@ def schedule(tasks, total_time, expected_task_first_run):
         remaining_time = task.executiontime - task.addedtime
         next_event_time = get_next_event_time(tasks, timeline.current_time)
         duration = min(remaining_time, next_event_time - timeline.current_time)
-
+        
         timeline.add_task(task, duration)
         task.addedtime += duration  # keep adding till it equals task.executiontime
 
@@ -182,6 +179,6 @@ if __name__ == "__main__":
     expected_task_first_run = get_first_task_run(tasks)
 
     timeline, tasks = schedule(tasks, total_time, expected_task_first_run)
-    formatted_chart = format_gantt_chart(timeline)
+    # formatted_chart = format_gantt_chart(timeline)
     # print_gantt_chart(formatted_chart)
     print_preemptions(tasks)
