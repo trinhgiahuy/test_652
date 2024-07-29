@@ -1,3 +1,5 @@
+import math
+
 class Task:
     def __init__(self, name, releasetime, period, executiontime, deadline):
         self.releasetime = releasetime
@@ -13,18 +15,6 @@ class Task:
 
     def info(self):
         return (f"{self.name}, exectime {self.executiontime} next_avai:{self.next_available} executed:{self.completed} addedtime:{self.addedtime} expected_continue: {self.expected_continue} preemptions:{self.preemptions}")
-
-    def getName(self):
-        return f"{self.name}"
-
-    def getExpectedContinue(self):
-        return self.expected_continue
-
-    def getAddedTime(self):
-        return self.addedtime
-
-    def getExecutionTime(self):
-        return self.executiontime
 
 class Timeline:
     def __init__(self, total_time):
@@ -87,16 +77,22 @@ def get_first_task_run(tasks):
     print(f"FISRT RUN: {tmp_list[0].getName()}")
     return tmp_list[0]
 
+def get_next_event_time(tasks, current_time):
+    next_times = [task.next_available for task in tasks if task.next_available > current_time]
+    next_times.extend([task.next_available + task.period for task in tasks if task.addedtime < task.executiontime])
+    if next_times:
+        return min(next_times)
+    return current_time + 1  # In case there are no upcoming events
+
 def schedule(tasks, total_time, expected_task_first_run):
     timeline = Timeline(total_time)
-    last_task = None
     current_task = None
     first_run = True
 
     while timeline.current_time < timeline.total_time:
         print()
         print(f"=================================[SCHEDULE] [{timeline.current_time}]")
-        print(f"current_task {current_task}, last_task {last_task}")
+        print(f"current_task {current_task}")
         if first_run:
             print("First run")
             task = preempted(tasks, timeline.current_time, expected_task_first_run, True)
@@ -109,13 +105,15 @@ def schedule(tasks, total_time, expected_task_first_run):
 
         # CASE WHEN ALL TASKS COMPLETE WITHIN THEIR PERIOD AND NOT YET AVAILABLE, IDLE TIME
         if task is None:
-            timeline.tasks.append(["  ", timeline.current_time, timeline.current_time + 1.0])
+            next_event_time = get_next_event_time(tasks, timeline.current_time)
+            timeline.tasks.append(["  ", timeline.current_time, next_event_time])
             print(f"{timeline.current_time} - Timeline.tasks after add task {timeline.tasks}")
-            timeline.current_time += 1.0
+            timeline.current_time = next_event_time
             continue
 
         remaining_time = task.executiontime - task.addedtime
-        duration = min(1.0, remaining_time)
+        next_event_time = get_next_event_time(tasks, timeline.current_time)
+        duration = min(remaining_time, next_event_time - timeline.current_time)
         
         timeline.add_task(task, duration)
         task.addedtime += duration  # keep adding till it equals task.executiontime
@@ -137,15 +135,16 @@ def schedule(tasks, total_time, expected_task_first_run):
     return timeline, tasks
 
 def format_gantt_chart(timeline):
-    formatted_chart = ["  "] * int(timeline.total_time)
+    total_time_slots = int(math.ceil(timeline.total_time * 1000))
+    formatted_chart = ["  "] * total_time_slots
     for task in timeline.tasks:
         name, start, end = task
-        for t in range(int(start), int(end)):
+        for t in range(int(start * 1000), int(end * 1000)):
             formatted_chart[t] = name
     return formatted_chart
 
 def print_gantt_chart(formatted_chart):
-    time_header = "Time | " + " | ".join(f"{t:2}" for t in range(len(formatted_chart)))
+    time_header = "Time | " + " | ".join(f"{t / 1000:.3f}" for t in range(len(formatted_chart)))
     task_header = "Task | " + " | ".join(f"{task:2}" for task in formatted_chart)
     print(time_header)
     print(task_header)
@@ -165,7 +164,7 @@ if __name__ == "__main__":
     ]
 
     # Define the total time for the Gantt chart (hyperperiod in this case)
-    total_time = 24  # This is just an example value; adjust as needed
+    total_time = 8  # This is just an example value; adjust as needed
 
     # Expected task to run first
     expected_task_first_run = get_first_task_run(tasks)
