@@ -8,6 +8,7 @@ class Task:
         self.name = name
         self.executed = False
         self.addedtime = 0  # Already executed time in the current period
+        self.preemptions = 0  # Track number of preemptions
 
 class Timeline:
     def __init__(self, total_time):
@@ -28,18 +29,22 @@ def order_by_deadline(tasks):
     tasks.sort(key=lambda x: x.deadline)
     return tasks
 
-def preempted(tasks, current_time):
+def preempted(tasks, current_time, last_task):
     available = available_tasks(tasks, current_time)
     if available:
         ordered_by_priority = order_by_deadline(available)
-        return ordered_by_priority[0]
+        highest_priority_task = ordered_by_priority[0]
+        if last_task and highest_priority_task.name != last_task.name:
+            last_task.preemptions += 1
+        return highest_priority_task
     else:
         return None
 
 def schedule(tasks, total_time):
     timeline = Timeline(total_time)
+    last_task = None
     while timeline.current_time < timeline.total_time:
-        task = preempted(tasks, timeline.current_time)
+        task = preempted(tasks, timeline.current_time, last_task)
         if task is None:
             timeline.tasks.append(["  ", timeline.current_time, timeline.current_time + 1])
             timeline.current_time += 1
@@ -53,7 +58,9 @@ def schedule(tasks, total_time):
             task.executed = True
             task.next_available += task.period
 
-    return timeline
+        last_task = task
+
+    return timeline, tasks
 
 def format_gantt_chart(timeline):
     formatted_chart = ["  "] * timeline.total_time
@@ -69,6 +76,10 @@ def print_gantt_chart(formatted_chart):
     print(time_header)
     print(task_header)
 
+def print_preemptions(tasks):
+    preemptions = [task.preemptions for task in tasks]
+    print("Preemptions:", ",".join(map(str, preemptions)))
+
 # Main Function
 if __name__ == "__main__":
     # Example workload from the exam question
@@ -80,6 +91,7 @@ if __name__ == "__main__":
     # Define the total time for the Gantt chart (hyperperiod in this case)
     total_time = 12  # This is just an example value; adjust as needed
 
-    timeline = schedule(tasks, total_time)
+    timeline, tasks = schedule(tasks, total_time)
     formatted_chart = format_gantt_chart(timeline)
     print_gantt_chart(formatted_chart)
+    print_preemptions(tasks)
