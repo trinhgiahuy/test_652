@@ -64,8 +64,10 @@ def format_gantt_chart(timeline):
     return formatted_chart
 
 def print_gantt_chart(formatted_chart):
-    print("Time | " + " | ".join(map(str, range(len(formatted_chart)))))
-    print("Task | " + " | ".join(formatted_chart))
+    time_header = "Time | " + " | ".join(f"{t:2}" for t in range(len(formatted_chart)))
+    task_header = "Task | " + " | ".join(f"{task:2}" for task in formatted_chart)
+    print(time_header)
+    print(task_header)
 
 # Main Function
 if __name__ == "__main__":
