@@ -41,7 +41,7 @@ def schedule(tasks, total_time):
     while timeline.current_time < timeline.total_time:
         task = preempted(tasks, timeline.current_time)
         if task is None:
-            timeline.tasks.append(["", timeline.current_time, timeline.current_time + 1])
+            timeline.tasks.append(["  ", timeline.current_time, timeline.current_time + 1])
             timeline.current_time += 1
             continue
 
@@ -56,7 +56,7 @@ def schedule(tasks, total_time):
     return timeline
 
 def format_gantt_chart(timeline):
-    formatted_chart = [""] * timeline.total_time
+    formatted_chart = ["  "] * timeline.total_time
     for task in timeline.tasks:
         name, start, end = task
         for t in range(start, end):
@@ -64,8 +64,8 @@ def format_gantt_chart(timeline):
     return formatted_chart
 
 def print_gantt_chart(formatted_chart):
-    print("Time  | " + " | ".join(map(str, range(len(formatted_chart)))))
-    print("Task  | " + " | ".join(formatted_chart))
+    print("Time | " + " | ".join(map(str, range(len(formatted_chart)))))
+    print("Task | " + " | ".join(formatted_chart))
 
 # Main Function
 if __name__ == "__main__":
