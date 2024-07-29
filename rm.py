@@ -29,14 +29,11 @@ def order_by_deadline(tasks):
     tasks.sort(key=lambda x: x.deadline)
     return tasks
 
-def preempted(tasks, current_time, last_task):
+def preempted(tasks, current_time):
     available = available_tasks(tasks, current_time)
     if available:
         ordered_by_priority = order_by_deadline(available)
-        highest_priority_task = ordered_by_priority[0]
-        if last_task and highest_priority_task.name != last_task.name:
-            highest_priority_task.preemptions += 1
-        return highest_priority_task
+        return ordered_by_priority[0]
     else:
         return None
 
@@ -44,11 +41,14 @@ def schedule(tasks, total_time):
     timeline = Timeline(total_time)
     last_task = None
     while timeline.current_time < timeline.total_time:
-        task = preempted(tasks, timeline.current_time, last_task)
+        task = preempted(tasks, timeline.current_time)
         if task is None:
             timeline.tasks.append(["  ", timeline.current_time, timeline.current_time + 1])
             timeline.current_time += 1
             continue
+
+        if last_task and task.name != last_task.name:
+            last_task.preemptions += 1
 
         if task.addedtime < task.executiontime:
             timeline.add_task(task)
