@@ -32,9 +32,9 @@ class Timeline:
         self.total_time = total_time
         self.tasks = []
 
-    def add_task(self, task):
+    def add_task(self, task, duration):
         from_time = self.current_time
-        end_time = from_time + 1.0
+        end_time = from_time + duration
         self.tasks.append([task.name, from_time, end_time])
         self.current_time = end_time
 
@@ -61,16 +61,11 @@ def preempted(tasks, current_time, expected_executing_task, first_run):
         ordered_by_priority = order_by_deadline(available)
         print(f"ordered_by_priority: {ordered_by_priority}")
 
-
         # HANDLE PRE_EMPT HERE? USUALLY NOT FIRST RUN
         if not first_run:
             print(f"[EVALUATE]: expected_executing_task {expected_executing_task.getName()} with expected_run: {expected_executing_task.getExpectedContinue()}")
             if expected_executing_task.getExpectedContinue() == True:
-                print()
-                print(expected_executing_task.getAddedTime())
-                print(expected_executing_task.getExecutionTime())
                 finish_before_trans = (expected_executing_task.getAddedTime() == expected_executing_task.getExecutionTime())
-                print(finish_before_trans)
 
                 if not finish_before_trans and (ordered_by_priority[0].getName() != expected_executing_task.getName()):
                     print("**************************PREEMPT HAPPENS!!")
@@ -92,13 +87,10 @@ def get_first_task_run(tasks):
     print(f"FISRT RUN: {tmp_list[0].getName()}")
     return tmp_list[0]
 
-
 def schedule(tasks, total_time, expected_task_first_run):
     timeline = Timeline(total_time)
     last_task = None
     current_task = None
-    print(timeline.current_time)
-    print(timeline.total_time)
     first_run = True
 
     while timeline.current_time < timeline.total_time:
@@ -122,18 +114,15 @@ def schedule(tasks, total_time, expected_task_first_run):
             timeline.current_time += 1.0
             continue
 
+        remaining_time = task.executiontime - task.addedtime
+        duration = min(1.0, remaining_time)
+        
+        timeline.add_task(task, duration)
+        task.addedtime += duration  # keep adding till it equals task.executiontime
+
         if task.addedtime < task.executiontime:
-            print(f"{task.addedtime} < {task.executiontime}.. Add to timeline")
-            timeline.add_task(task)
-            task.completed = False
-
-            if task.addedtime + 1.0 <= task.executiontime:
-                print("______________still able to continue")
-                task.expected_continue = True
-
-            task.addedtime += 1.0  # keep adding till it equals task.executiontime
-        elif task.addedtime == task.executiontime:  # task completed
-            print(f"{task.addedtime} == {task.executiontime}..Reset added time, start executing and increase next_available")
+            task.expected_continue = True
+        else:  # task completed
             task.addedtime = 0.0
             task.completed = True
             task.expected_continue = False
