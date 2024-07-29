@@ -40,6 +40,7 @@ def preempted(tasks, current_time):
 def schedule(tasks, total_time):
     timeline = Timeline(total_time)
     last_task = None
+    current_task = None
     while timeline.current_time < timeline.total_time:
         task = preempted(tasks, timeline.current_time)
         if task is None:
@@ -47,8 +48,8 @@ def schedule(tasks, total_time):
             timeline.current_time += 1
             continue
 
-        if last_task and task.name != last_task.name:
-            last_task.preemptions += 1
+        if current_task and task.name != current_task.name:
+            current_task.preemptions += 1
 
         if task.addedtime < task.executiontime:
             timeline.add_task(task)
@@ -58,7 +59,7 @@ def schedule(tasks, total_time):
             task.executed = True
             task.next_available += task.period
 
-        last_task = task
+        current_task = task
 
     return timeline, tasks
 
