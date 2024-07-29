@@ -35,7 +35,7 @@ def preempted(tasks, current_time, last_task):
         ordered_by_priority = order_by_deadline(available)
         highest_priority_task = ordered_by_priority[0]
         if last_task and highest_priority_task.name != last_task.name:
-            last_task.preemptions += 1
+            highest_priority_task.preemptions += 1
         return highest_priority_task
     else:
         return None
