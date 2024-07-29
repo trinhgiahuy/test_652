@@ -16,6 +16,18 @@ class Task:
     def info(self):
         return (f"{self.name}, exectime {self.executiontime} next_avai:{self.next_available} executed:{self.completed} addedtime:{self.addedtime} expected_continue: {self.expected_continue} preemptions:{self.preemptions}")
 
+    def getName(self):
+        return f"{self.name}"
+
+    def getExpectedContinue(self):
+        return self.expected_continue
+
+    def getAddedTime(self):
+        return self.addedtime
+
+    def getExecutionTime(self):
+        return self.executiontime
+
 class Timeline:
     def __init__(self, total_time):
         self.current_time = 0.0
@@ -114,7 +126,7 @@ def schedule(tasks, total_time, expected_task_first_run):
         remaining_time = task.executiontime - task.addedtime
         next_event_time = get_next_event_time(tasks, timeline.current_time)
         duration = min(remaining_time, next_event_time - timeline.current_time)
-        
+
         timeline.add_task(task, duration)
         task.addedtime += duration  # keep adding till it equals task.executiontime
 
@@ -171,5 +183,5 @@ if __name__ == "__main__":
 
     timeline, tasks = schedule(tasks, total_time, expected_task_first_run)
     formatted_chart = format_gantt_chart(timeline)
-    print_gantt_chart(formatted_chart)
+    # print_gantt_chart(formatted_chart)
     print_preemptions(tasks)
